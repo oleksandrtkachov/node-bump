@@ -33,7 +33,7 @@ exports.bump = function(manifest, type, prefix){
 };
 
 exports.tag = function(push, prefix){
-	prefix = prefix || '';
+	prefix = prefix ? prefix.concat('-').replace(/-+$/gi,'-') : '';
 
 	exec('git commit ' + exports.manifests().join(' ') + ' -m "release v' + version + '"')
 		.then(function(out){

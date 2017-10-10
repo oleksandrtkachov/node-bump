@@ -17,7 +17,7 @@ program
 currentGitBranch = execSync('git rev-parse --abbrev-ref HEAD',{encoding: 'utf8'}).replace(/\n/g,'');
 
 setTimeout(function(){
-	program.prefix && (program.prefix = (typeof program.prefix === "string") ? program.prefix.concat('-').replace(/-+$/gi,'-') : currentGitBranch);
+	program.prefix && (program.prefix = (typeof program.prefix === "string") ? program.prefix : currentGitBranch);
 });
 
 ['patch', 'minor', 'major'].forEach(function(type){
