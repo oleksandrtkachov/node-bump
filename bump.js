@@ -3,13 +3,22 @@
 
 var multiline = require('multiline'),
 	program = require('commander'),
-	api = require('./index');
+	api = require('./index'),
+	execSync = require('child_process').execSync,
+	currentGitBranch;
 
 program
 	.version(require('./package').version)
 	.usage('[options]')
 	.option('--no-tags', 'Do not create git tag')
-	.option('--push', 'Push to remote repo');
+	.option('--push', 'Push to remote repo')
+	.option('--prefix [value]', 'Add prefix to tag name');
+
+currentGitBranch = execSync('git rev-parse --abbrev-ref HEAD',{encoding: 'utf8'}).replace(/\n/g,'');
+
+setTimeout(function(){
+	program.prefix && (program.prefix = (typeof program.prefix === "string") ? program.prefix.concat('-').replace(/-+$/gi,'-') : currentGitBranch);
+});
 
 ['patch', 'minor', 'major'].forEach(function(type){
 	program.option('--' + type, 'Increase ' + type + ' version');
@@ -17,12 +26,13 @@ program
 	program.on(type, function(){
 		setTimeout(function(){
 			api.manifests().forEach(function(manifest){
-				api.bump(manifest, type);
+				api.bump(manifest, type, program.prefix);
 			});
 
 			if(program.tags){
-				api.tag(program.push);
+				api.tag(program.push,program.prefix);
 			}
+
 		}, 0);
 	});
 });

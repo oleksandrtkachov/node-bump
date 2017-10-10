@@ -4,7 +4,7 @@ var semver = require('semver'),
 	pkg = cwd + '/package.json',
 	fs = require('fs'),
 	indent = require('detect-indent'),
-	version;
+	currentGitBranch, version;
 
 function logError(err){
 	console.log(err);
@@ -16,7 +16,7 @@ exports.manifests = function(){
 	});
 };
 
-exports.bump = function(manifest, type){
+exports.bump = function(manifest, type, prefix){
 	var pkg = cwd + '/' + manifest;
 
 	var current = require(pkg);
@@ -25,16 +25,19 @@ exports.bump = function(manifest, type){
 
 	version = current.version;
 
+	prefix && (current.prefix = prefix);
+
 	var usedIndent = indent(fs.readFileSync(pkg, 'utf8')) || '  ';
 
 	fs.writeFileSync(pkg, JSON.stringify(current, null, usedIndent));
 };
 
-exports.tag = function(push){
+exports.tag = function(push, prefix){
+	prefix = prefix || '';
+
 	exec('git commit ' + exports.manifests().join(' ') + ' -m "release v' + version + '"')
 		.then(function(out){
-			// console.log(out.stdout);
-			return exec('git tag v' + version)
+			return exec('git tag ' + prefix + 'v' + version);
 		}, logError)
 
 		.then(function(out){
