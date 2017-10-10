@@ -4,7 +4,7 @@ var semver = require('semver'),
 	pkg = cwd + '/package.json',
 	fs = require('fs'),
 	indent = require('detect-indent'),
-	currentGitBranch, version;
+	version;
 
 function logError(err){
 	console.log(err);
