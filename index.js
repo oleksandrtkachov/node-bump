@@ -16,6 +16,16 @@ exports.manifests = function(){
 	});
 };
 
+exports.getField = function(manifest,field){
+	var pkg = cwd + '/' + manifest,
+		current = require(pkg),
+		isExist = current.hasOwnProperty(field);
+
+	console.log("Prefix: ",current[field],manifest);
+
+	return isExist ? current[field] : isExist;
+};
+
 exports.bump = function(manifest, type, prefix){
 	var pkg = cwd + '/' + manifest;
 
