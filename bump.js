@@ -4,9 +4,17 @@
 var multiline = require('multiline'),
 	program = require('commander'),
 	api = require('./index'),
-	//prompt = require('prompt'),
+	prompt = require('prompt'),
 	//execSync = require('child_process').execSync,
 	currentGitBranch,manifests,prefix;
+
+function bumpVersion(manifests,type,prefix,options){
+	manifests.forEach(function(manifest){
+		api.bump(manifest, type, prefix);
+	});
+
+	options.tags && api.tag(options.push, prefix);
+}
 
 function getPrefix(manifests){
 	var currentPrefix;
@@ -15,6 +23,19 @@ function getPrefix(manifests){
 		return currentPrefix;
 	});
 	return currentPrefix;
+}
+
+function getUserDefinedPrefix(manifests,type,prefix,options){
+	prompt.start();
+	prompt.get(['prefix'], function (err, result) {
+		console.log('Command-line input received:');
+		console.log('  prefix: ' + result.prefix);
+		prefix = result.prefix;
+		prompt.stop();
+
+		bumpVersion(manifests,type,prefix,options);
+
+	});
 }
 
 program
@@ -40,15 +61,28 @@ manifests = api.manifests();
 
 			if (program.prefix) {
 				prefix = getPrefix(manifests);
+
 				console.log("Current prefix: ", prefix);
-			}
 
-			manifests.forEach(function(manifest){
-				api.bump(manifest, type, prefix);
-			});
+				if(prefix){
+					bumpVersion(manifests,type,prefix,{
+						"tags": program.tags,
+						"push": program.push
+					});
+				} else {
+					getUserDefinedPrefix(manifests,type,prefix,{
+						"tags": program.tags,
+						"push": program.push
+					});
+				}
 
-			if(program.tags){
-				api.tag(program.push, prefix);
+			} else {
+
+				bumpVersion(manifests,type,prefix,{
+					"tags": program.tags,
+					"push": program.push
+				});
+
 			}
 
 		}, 0);
