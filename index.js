@@ -21,8 +21,6 @@ exports.getField = function(manifest,field){
 		current = require(pkg),
 		isExist = current.hasOwnProperty(field);
 
-	console.log("Prefix: ",current[field],manifest);
-
 	return isExist ? current[field] : isExist;
 };
 

@@ -5,10 +5,10 @@ var multiline = require('multiline'),
 	program = require('commander'),
 	api = require('./index'),
 	prompt = require('prompt'),
-	//execSync = require('child_process').execSync,
-	currentGitBranch,manifests,prefix;
+	chalk = require('chalk'),
+	manifests,prefix,promptScheme;
 
-function bumpVersion(manifests,type,prefix,options){
+function bumpVersion(manifests, type, prefix, options){
 	manifests.forEach(function(manifest){
 		api.bump(manifest, type, prefix);
 	});
@@ -19,79 +19,62 @@ function bumpVersion(manifests,type,prefix,options){
 function getPrefix(manifests){
 	var currentPrefix;
 	manifests.some(function(manifest){
-		currentPrefix = api.getField(manifest,"prefix");
+		currentPrefix = api.getField(manifest, 'prefix');
 		return currentPrefix;
 	});
 	return currentPrefix;
 }
 
-function getUserDefinedPrefix(manifests,type,prefix,options){
-	prompt.start();
-	prompt.get(['prefix'], function (err, result) {
-		console.log('Command-line input received:');
-		console.log('  prefix: ' + result.prefix);
-		prefix = result.prefix;
-		prompt.stop();
+manifests = api.manifests();
 
-		bumpVersion(manifests,type,prefix,options);
-
-	});
-}
+prompt.message = chalk.redBright('Current prefix not found');
+promptScheme = {
+	properties: {
+		prefix: {
+			description: chalk.greenBright('\nPlease Enter new prefix'),
+			type: 'string',
+			pattern: /^[a-zA-Z]+(-?[a-zA-Z\d]+)*$/,
+			message: chalk.yellowBright('Prefix should begin with a letter, contain only letters, digits, one hyphen as a delimiter between phrases and do not end on hyphen.'),
+			required: true
+		}
+	}
+};
 
 program
 	.version(require('./package').version)
 	.usage('[options]')
 	.option('--no-tags', 'Do not create git tag')
 	.option('--push', 'Push to remote repo')
-	.option('--prefix [value]', 'Add prefix to tag name');
-
-//currentGitBranch = execSync('git rev-parse --abbrev-ref HEAD',{encoding: 'utf8'}).replace(/\n/g,''); //remove
-manifests = api.manifests();
-
-// setTimeout(function(){
-// 	//get prefix
-// 	program.prefix && (program.prefix = (typeof program.prefix === "string") ? program.prefix : currentGitBranch);
-// });
+	.option('--prefix', 'Add prefix to tag name');
 
 ['patch', 'minor', 'major'].forEach(function(type){
 	program.option('--' + type, 'Increase ' + type + ' version');
 
 	program.on(type, function(){
 		setTimeout(function(){
+			var options = {'tags': program.tags, 'push': program.push};
 
 			if (program.prefix) {
 				prefix = getPrefix(manifests);
 
-				console.log("Current prefix: ", prefix);
-
 				if(prefix){
-					bumpVersion(manifests,type,prefix,{
-						"tags": program.tags,
-						"push": program.push
-					});
+					bumpVersion(manifests,type,prefix,options);
 				} else {
-					getUserDefinedPrefix(manifests,type,prefix,{
-						"tags": program.tags,
-						"push": program.push
+					prompt.start();
+					prompt.get(promptScheme, function (err, result) {
+						prefix = result.prefix;
+						prompt.stop();
+						bumpVersion(manifests,type,prefix,options);
 					});
 				}
 
 			} else {
-
-				bumpVersion(manifests,type,prefix,{
-					"tags": program.tags,
-					"push": program.push
-				});
-
+				bumpVersion(manifests,type,prefix,options);
 			}
 
 		}, 0);
 	});
 });
-
-/*program.on('prefix',function(){
-	prefix = getPrefix(manifests);
-});*/
 
 program.on('--help', function(){
 	console.log(multiline(function(){/*

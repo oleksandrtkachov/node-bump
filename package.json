@@ -10,6 +10,7 @@
   "author": "Alexey Raspopov (https://github.com/alexeyraspopov)",
   "repository": "alexeyraspopov/node-bump",
   "dependencies": {
+    "chalk": "^2.2.0",
     "child-process-promise": "^0.2.0-SNAPSHOT.1389671754086",
     "commander": "2.10.0",
     "detect-indent": "^0.1.3",
