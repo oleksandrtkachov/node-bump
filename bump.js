@@ -5,8 +5,7 @@ var multiline = require('multiline'),
 	program = require('commander'),
 	api = require('./index'),
 	prompt = require('prompt'),
-	chalk = require('chalk'),
-	manifests,prefix,promptScheme;
+	chalk = require('chalk');
 
 function bumpVersion(manifests, type, prefix, options){
 	manifests.forEach(function(manifest){
@@ -25,21 +24,6 @@ function getPrefix(manifests){
 	return currentPrefix;
 }
 
-manifests = api.manifests();
-
-prompt.message = chalk.redBright('Current prefix not found');
-promptScheme = {
-	properties: {
-		prefix: {
-			description: chalk.greenBright('\nPlease Enter new prefix'),
-			type: 'string',
-			pattern: /^[a-zA-Z]+(-?[a-zA-Z\d]+)*$/,
-			message: chalk.yellowBright('Prefix should begin with a letter, contain only letters, digits, one hyphen as a delimiter between phrases and do not end on hyphen.'),
-			required: true
-		}
-	}
-};
-
 program
 	.version(require('./package').version)
 	.usage('[options]')
@@ -52,7 +36,23 @@ program
 
 	program.on(type, function(){
 		setTimeout(function(){
-			var options = {'tags': program.tags, 'push': program.push};
+			var manifests = api.manifests(),
+				promptScheme = {
+					properties: {
+						prefix: {
+							description: chalk.greenBright('\nPlease Enter new prefix'),
+							type: 'string',
+							pattern: /^[a-zA-Z]+(-?[a-zA-Z\d]+)*$/,
+							message: chalk.yellowBright('Prefix should begin with a letter, contain only letters, digits, one hyphen as a delimiter between phrases and do not end on hyphen.'),
+							required: true
+						}
+					}
+				},
+				options = {
+					'tags': program.tags,
+					'push': program.push
+				},
+				prefix;
 
 			if (program.prefix) {
 				prefix = getPrefix(manifests);
@@ -60,6 +60,7 @@ program
 				if(prefix){
 					bumpVersion(manifests,type,prefix,options);
 				} else {
+					prompt.message = chalk.redBright('Current prefix not found');
 					prompt.start();
 					prompt.get(promptScheme, function (err, result) {
 						prefix = result.prefix;
