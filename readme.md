@@ -8,10 +8,6 @@ If you're using NPM only check [native solution](https://docs.npmjs.com/cli/vers
 
 	npm version [<newversion> | major | minor | patch | premajor | preminor | prepatch | prerelease]
 
-## Install
-
-	npm install -g version-bump
-
 ## Usage
 
 	bump [options]
