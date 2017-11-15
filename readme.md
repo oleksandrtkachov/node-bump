@@ -19,6 +19,7 @@ If you're using NPM only check [native solution](https://docs.npmjs.com/cli/vers
  * `--patch`, `--minor`, `--major` - Increase specific version
  * `--no-tags` - Do not create git tag
  * `--push` - Push to remote repo
+ * `--prefix` - Add prefix to tag name
 
 ## TODO
 

@@ -16,7 +16,15 @@ exports.manifests = function(){
 	});
 };
 
-exports.bump = function(manifest, type){
+exports.getField = function(manifest,field){
+	var pkg = cwd + '/' + manifest,
+		current = require(pkg),
+		isExist = current.hasOwnProperty(field);
+
+	return isExist ? current[field] : isExist;
+};
+
+exports.bump = function(manifest, type, prefix){
 	var pkg = cwd + '/' + manifest;
 
 	var current = require(pkg);
@@ -25,16 +33,19 @@ exports.bump = function(manifest, type){
 
 	version = current.version;
 
+	prefix && (current.prefix = prefix);
+
 	var usedIndent = indent(fs.readFileSync(pkg, 'utf8')) || '  ';
 
 	fs.writeFileSync(pkg, JSON.stringify(current, null, usedIndent));
 };
 
-exports.tag = function(push){
+exports.tag = function(push, prefix){
+	prefix = prefix ? prefix.concat('-').replace(/-+$/gi,'-') : '';
+
 	exec('git commit ' + exports.manifests().join(' ') + ' -m "release v' + version + '"')
 		.then(function(out){
-			// console.log(out.stdout);
-			return exec('git tag v' + version)
+			return exec('git tag ' + prefix + 'v' + version);
 		}, logError)
 
 		.then(function(out){
